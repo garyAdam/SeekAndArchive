@@ -8,9 +8,7 @@ namespace SeekAndArchive
 {
     class FileSearcher
     {
-
-
-        public IEnumerable<string> Search(string fileName, string directoryPath)
+        public IList<FileInfo> Search(string fileName, string directoryPath)
         {
             fileName = "*" + fileName + "*";
             DirectoryInfo directory = new DirectoryInfo(directoryPath);
@@ -18,15 +16,14 @@ namespace SeekAndArchive
             {
                 throw new ArgumentException("Directoy does not exist");
             }
-            return from f in SearchInDir(fileName, directory)
-                   select f.FullName;
+            return SearchInDir(fileName, directory);
         }
         private IList<FileInfo> SearchInDir(string fileName, DirectoryInfo directory)
         {
             var currentDirMatch = directory.GetFiles(fileName);
             List<FileInfo> fileInfoList = new List<FileInfo>(currentDirMatch);
 
-            if (directory.GetDirectories()!=null)
+            if (directory.GetDirectories() != null)
             {
                 foreach (var item in directory.GetDirectories())
                 {
