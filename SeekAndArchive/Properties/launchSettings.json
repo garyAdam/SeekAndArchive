@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SeekAndArchive": {
+      "commandName": "Project",
+      "commandLineArgs": "test.txt \"C:\\.NET projects\""
+    }
+  }
+}
