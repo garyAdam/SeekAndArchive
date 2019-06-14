@@ -12,6 +12,7 @@ namespace SeekAndArchive
 
         public IEnumerable<string> Search(string fileName, string directoryPath)
         {
+            fileName = "*" + fileName + "*";
             DirectoryInfo directory = new DirectoryInfo(directoryPath);
             if (!directory.Exists)
             {
