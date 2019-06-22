@@ -11,32 +11,37 @@ namespace SeekAndArchive
         private IList<FileInfo> files;
         private readonly FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
         private FileArchiver archiver;
+        private Dictionary<FileSystemEventArgs, Action> handlers = new Dictionary<FileSystemEventArgs, Action>();
 
+
+        public FileArchiver Archiver { get => archiver; set => archiver = value; }
+
+        public LiveWatcher(IList<FileInfo> files, FileArchiver archiver)
+        {
+            this.files = files;
+            this.Archiver = archiver;
+        }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public void Run(string[] args)
+        public void Run(string path, string filter)
         {
-            FileSearcher fileSearcher = new FileSearcher();
-            archiver = new FileArchiver(Path.Combine(args[1], "Archive"));
-            files = fileSearcher.Search(args[0], args[1]);
             listFiles();
-            setupWatcher(args);
+            setupWatcher(path, filter);
             while (Console.ReadLine() != "q")
             {
 
             }
         }
-        private void setupWatcher(string[] args)
+        private void setupWatcher(string path, string filter)
         {
-            fileSystemWatcher.Path = args[1];
+            fileSystemWatcher.Path = path;
             fileSystemWatcher.IncludeSubdirectories = true;
-            fileSystemWatcher.Filter = "*" + args[0] + "*";
+            fileSystemWatcher.Filter = "*" + filter + "*";
             fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Attributes | NotifyFilters.LastAccess | NotifyFilters.Security | NotifyFilters.Size;
-            fileSystemWatcher.Changed += FileSystemWatcher_Changed;
-            fileSystemWatcher.Created += FileSystemWatcher_Changed;
-            fileSystemWatcher.Deleted += FileSystemWatcher_Changed;
-            fileSystemWatcher.Renamed += FileSystemWatcher_Renamed;
-
+            fileSystemWatcher.Created += OnCreate;
+            fileSystemWatcher.Changed += (object sender, FileSystemEventArgs e) => Archiver.ArchiveFile(new FileInfo(e.FullPath));
+            fileSystemWatcher.Deleted += OnDelete;
+            fileSystemWatcher.Renamed += OnRename;
             fileSystemWatcher.EnableRaisingEvents = true;
         }
 
@@ -51,9 +56,10 @@ namespace SeekAndArchive
             }
         }
 
-        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+        private void OnRename(object sender, RenamedEventArgs e)
         {
-            archiver.ArchiveFile(new FileInfo(e.FullPath));
+            Archiver.ArchiveFile(new FileInfo(e.FullPath));
+            files.Add(new FileInfo(e.FullPath));
             foreach (FileInfo item in files)
             {
                 if (item.FullName == e.OldFullPath)
@@ -62,41 +68,35 @@ namespace SeekAndArchive
                     break;
                 }
             }
-            files.Add(new FileInfo(e.FullPath));
             listFiles();
         }
 
 
-
-        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+        private void OnDelete(object sender, FileSystemEventArgs e)
         {
             FileInfo file = new FileInfo(e.FullPath);
 
 
-            if (e.ChangeType == WatcherChangeTypes.Created)
-            {
-                archiver.ArchiveFile(file);
-                files.Add(file);
-                listFiles();
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Deleted)
-            {
 
-                foreach (FileInfo item in files)
-                {
-                    if (item.FullName == e.FullPath)
-                    {
-                        files.Remove(item);
-                        break;
-                    }
-                }
-                listFiles();
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            foreach (FileInfo item in files)
             {
-                archiver.ArchiveFile(file);
-                listFiles();
+                if (item.FullName == e.FullPath)
+                {
+                    files.Remove(item);
+                    break;
+                }
             }
+            listFiles();
+
+        }
+
+        private void OnCreate(object sender, FileSystemEventArgs e)
+        {
+            FileInfo file = new FileInfo(e.FullPath);
+
+            Archiver.ArchiveFile(file);
+            files.Add(file);
+            listFiles();
         }
     }
 }

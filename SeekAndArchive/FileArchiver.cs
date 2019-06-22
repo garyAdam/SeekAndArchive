@@ -7,7 +7,7 @@ using System.Text;
 
 namespace SeekAndArchive
 {
-    class FileArchiver
+    public class FileArchiver
     {
         private DirectoryInfo archiveDirectory;
         public FileArchiver(string archiveDirectory)
