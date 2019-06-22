@@ -14,7 +14,7 @@ namespace SeekAndArchive
 
             FileArchiver archiver = new FileArchiver(Path.Combine(args[1], "Archive"));
             LiveWatcher liveWatcher = new LiveWatcher(files,archiver);
-            liveWatcher.Run(args[1],args[0]);
+            liveWatcher.Run(args[1]);
 
 
         }

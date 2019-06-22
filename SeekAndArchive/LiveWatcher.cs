@@ -11,7 +11,6 @@ namespace SeekAndArchive
         private IList<FileInfo> files;
         private readonly FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
         private FileArchiver archiver;
-        private Dictionary<FileSystemEventArgs, Action> handlers = new Dictionary<FileSystemEventArgs, Action>();
 
 
         public FileArchiver Archiver { get => archiver; set => archiver = value; }
@@ -23,7 +22,7 @@ namespace SeekAndArchive
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-        public void Run(string path, string filter)
+        public void Run(string path, string filter = "")
         {
             listFiles();
             setupWatcher(path, filter);
@@ -32,7 +31,7 @@ namespace SeekAndArchive
 
             }
         }
-        private void setupWatcher(string path, string filter)
+        private void setupWatcher(string path, string filter = "") 
         {
             fileSystemWatcher.Path = path;
             fileSystemWatcher.IncludeSubdirectories = true;
